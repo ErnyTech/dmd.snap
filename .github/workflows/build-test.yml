@@ -13,18 +13,21 @@ jobs:
       run: |
         docker run --name=build_container -ti -d --tmpfs /run --tmpfs /run/lock --tmpfs /tmp --privileged -v /lib/modules:/lib/modules:ro snapcraft_image
         docker exec -w /workdir build_container /bin/bash -c "snap wait system seed.loaded"
-    - name: Install snapcraft
+    - name: Install snap core
       run: |
         docker exec -w /workdir build_container /bin/bash -c "snap install core"
-        docker exec -w /workdir build_container /bin/bash -c "snap install snapcraft --classic"
+    - name: Install Snapcraft with LXD
+      uses: samuelmeuli/action-snapcraft@v1
+      with:
+        use_lxd: true
     - name: Build dmd
       run: |
-        docker exec --privileged -ti -w /workdir build_container /bin/bash -c "snapcraft"
-        docker exec -w /workdir build_container /bin/bash -c "cp *.snap /artifacts"
+        sg lxd -c 'snapcraft --use-lxd'
+        docker cp *.snap build_container:/artifacts/
         docker cp build_container:/artifacts/ dmd-snap
     - name: Test install dmd snap 
       run: |
-        docker exec -w /workdir build_container /bin/bash -c "snap install --classic --dangerous *.snap"
+        docker exec -w /workdir build_container /bin/bash -c "snap install --classic --dangerous /artifacts/*.snap"
     - name: Test dmd executable
       run: |
         docker exec -w /workdir build_container /bin/bash -c "snap run dmd --version"
