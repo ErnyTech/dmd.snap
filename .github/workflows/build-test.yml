@@ -19,7 +19,7 @@ jobs:
         docker exec -w /workdir build_container /bin/bash -c "snap install snapcraft --classic"
     - name: Build dmd
       run: |
-        docker exec -w /workdir build_container /bin/bash -c "snapcraft"
+        docker exec --privileged -w /workdir build_container /bin/bash -c "snapcraft"
         docker exec -w /workdir build_container /bin/bash -c "cp *.snap /artifacts"
         docker cp build_container:/artifacts/ dmd-snap
     - name: Test install dmd snap 
